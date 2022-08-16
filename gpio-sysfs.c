@@ -44,7 +44,9 @@ struct gpiodrv_private_data gpio_drv_data;
 
 
 int gpio_sysfs_probe(struct platform_device *pdev) {
+    int i = 0; 
     struct device *dev = &pdev->dev;
+    const char *name;
 
     /* parent device node */
     struct device_node *parent = pdev->dev.of_node;
@@ -57,6 +59,16 @@ int gpio_sysfs_probe(struct platform_device *pdev) {
             dev_err(dev, "Cannot allocate memory\n");
             return -ENOMEM;
         }
+        
+        /* get label information of child nodes */
+        if(of_property_read_string(child, "label", &name)) {
+            dev_warn(dev, "Missing label information\n");
+            snprintf(dev_data->label, sizeof(dev_data->label), "unknowngpio%d", i);
+        } else {
+            strcpy(dev_data->label, name);
+            dev_info(dev, "GPIO label: %s\n", dev_data->label);
+        } 
+        ++i;
     }
     return 0;
 }
